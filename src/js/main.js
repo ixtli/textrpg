@@ -35,6 +35,7 @@ let glyphs = null;
 function draw()
 {
 	console.time('draw');
+	ctx.clearRect(0,0,canvas.width, canvas.height);
 	for (let y = 0; y < mapY; y++)
 	{
 		for (let x = 0; x < mapX; x++)
@@ -44,8 +45,6 @@ function draw()
 		}
 	}
 
-	chars.width = chars.width;
-
 	if (_cellSize < 8)
 	{
 		console.timeEnd('draw');
@@ -53,6 +52,7 @@ function draw()
 	}
 
 	let glyphCount = glyphs.length;
+	cc_ctx.clearRect(0,0,chars.width, chars.height);
 	for (let y = 0; y < mapY; y++)
 	{
 		for (let x = 0; x < mapX; x++)
@@ -68,7 +68,6 @@ function draw()
 
 function resize()
 {
-
 	windowWidth = $(window).width();
 	windowHeight = $(window).height();
 	mapX = Math.ceil(windowWidth / _cellSize);
@@ -80,6 +79,11 @@ function resize()
 	chars.width = mapX * _cellSize;
 	chars.height = mapY * _cellSize;
 
+	if (_cellSize < 8)
+	{
+		cc_ctx.clearRect(0,0,chars.width, chars.height);
+	}
+
 	for (let i = 0; i < mapX * mapY; i++)
 	{
 		fgMap[i] = rand(3);
@@ -87,7 +91,6 @@ function resize()
 	}
 
 	console.info("New Map: ", mapX, "x", mapY);
-
 	window.requestAnimationFrame(draw);
 }
 
@@ -123,16 +126,6 @@ function setZoomLevel(newLevel)
 $(window).on('resize', () =>
 {
 	resize();
-});
-
-$(window).on('click', () =>
-{
-	_currentZoom++;
-	if (_currentZoom >= ZOOM_LEVELS.length)
-	{
-		_currentZoom = 0;
-	}
-	setZoomLevel(_currentZoom);
 });
 
 $(window).on('keypress', (evt) =>
