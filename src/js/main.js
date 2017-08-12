@@ -1,5 +1,5 @@
 global.$ = global.jQuery = require('jquery');
-let foundation = require('../../node_modules/foundation-sites/dist/js/foundation.js');
+// let foundation = require('../../node_modules/foundation-sites/dist/js/foundation.js');
 
 const glyph = require('./glyph.js');
 
@@ -51,7 +51,9 @@ function draw()
 			ctx.fillStyle = colorMap[bgMap[x + y * mapX]];
 			ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
 			let buffer = glyphs[rand(glyphCount)];
-			cc_ctx.drawImage(buffer._buffer, (x * cellWidth) + buffer._xOffset, y * cellHeight + 4);
+			cc_ctx.drawImage(buffer._buffer,
+				(x * cellWidth) + buffer._xOffset,
+				(y * cellHeight) + buffer._yOffset);
 		}
 	}
 	console.timeEnd('draw');
@@ -87,4 +89,4 @@ $(window).on('resize', () =>
 
 resize();
 
-$(document).foundation();
+// $(document).foundation();

@@ -37,41 +37,130 @@ function regenerateCSSFont()
 	CSSFont = `${style} ${variant} ${weight} ${stretch} ${_sizeStr} ${family}`;
 }
 
-function isASCII(str)
+function getBoundingBox(ctx, width, height)
 {
-	return (/^[\x00-\x7F]*$/).test(str);
-}
+	let ret = {};
 
-function isExtendedASCII(str)
-{
-	return (/^[\x00-\xFF]*$/).test(str);
+	// Get the pixel data from the canvas
+	let data = ctx.getImageData(0, 0, width, height).data;
+	let first = 0;
+	let last = 0;
+	let right = 0;
+	let left = 0;
+	let r = height;
+	let c = 0;
+
+	// 1. get bottom
+	while (!last && r)
+	{
+		r--;
+		for (c = 0; c < width; c++)
+		{
+			if (data[r * width * 4 + c * 4 + 3])
+			{
+				last = r + 1;
+				ret.bottom = r + 1;
+				break;
+			}
+		}
+	}
+
+	// 2. get top
+	r = 0;
+	while (!first && r < last)
+	{
+		for (c = 0; c < width; c++)
+		{
+			if (data[r * width * 4 + c * 4 + 3])
+			{
+				first = r - 1;
+				ret.top = r - 1;
+				ret.height = last - first;
+				break;
+			}
+		}
+		r++;
+	}
+
+	// 3. get right
+	c = width;
+	while (!right && c)
+	{
+		c--;
+		for (r = 0; r < height; r++)
+		{
+			if (data[r * width * 4 + c * 4 + 3])
+			{
+				right = c + 1;
+				ret.right = c + 1;
+				break;
+			}
+		}
+	}
+
+	// 4. get left
+	c = 0;
+	while (!left && c < right)
+	{
+		for (r = 0; r < height; r++)
+		{
+			if (data[r * width * 4 + c * 4 + 3])
+			{
+				left = c;
+				ret.left = c;
+				ret.width = right - left;
+				break;
+			}
+		}
+		c++;
+
+		// If we've got it then return the height
+		if (left)
+		{
+			return ret;
+		}
+	}
+
+	// We screwed something up...  What do you expect from free code?
+	return false;
 }
 
 function CachedGlyph(glyph)
 {
 	this._glyph = glyph;
-	this._isASCII = isASCII(glyph);
-	this._isExtendedASCII = isExtendedASCII(glyph);
+
+	// Clear canvas
+	const tc = document.createElement('canvas');
+	tc.width = _width;
+	tc.height = _height;
+	const tcx = tc.getContext('2d');
+	tcx.font = CSSFont;
+	tcx.fillText(glyph, 5, _height - (_height / 8));
+	const bb = getBoundingBox(tcx, _width, _height);
+
+	if (!bb)
+	{
+		throw new Error("Failed to get bounding box!");
+	}
+
+	const w = bb.width;
+	const h = bb.height;
 
 	const canvas = document.createElement('canvas');
-	canvas.height = _width - 4;
-	canvas.width = _height - 4;
-
+	canvas.width = w;
+	canvas.height = h;
 	const ctx = canvas.getContext('2d');
-	ctx.font = CSSFont;
-	const textWidth = Math.ceil(ctx.measureText(glyph).width);
-	this._xOffset = (_width / 2) - Math.ceil(textWidth / 2);
 
-	const height = _size + (_height / 4);
+	this._xOffset = (_width / 2) - Math.ceil(w / 2);
+	this._yOffset = (_height / 2) - Math.ceil(h / 2);
 
 	if (DEBUG_DRAW)
 	{
 		ctx.fillStyle = 'rgba(255,0,0,0.25)';
-		ctx.fillRect(0, 0, textWidth, height);
+		ctx.fillRect(0, 0, w, h);
 	}
 
-	ctx.fillStyle = 'black';
-	ctx.fillText(glyph, 0, height - Math.ceil(_height / 8) + 2);
+	ctx.drawImage(tc, bb.left, bb.top, w, h, 0, 0, w, h);
 
 	this._buffer = canvas;
 	glyphCache[glyph] = this;
