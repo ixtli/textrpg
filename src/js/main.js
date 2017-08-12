@@ -3,14 +3,16 @@ global.$ = global.jQuery = require('jquery');
 const glyph = require('./glyph.js');
 
 const ZOOM_LEVELS = [
+	[4, 2],
 	[8, 4],
 	[16, 8],
 	[32, 16],
 	[64, 28],
-	[128, 64]
+	[128, 64],
+	[256, 128]
 ];
 
-let _currentZoom = 2;
+let _currentZoom = -1;
 let _cellSize = 32;
 
 const canvas = $('canvas.gc');
@@ -32,7 +34,6 @@ let glyphs = null;
 
 function draw()
 {
-	glyphCount = glyphs.length;
 	console.time('draw');
 	for (let y = 0; y < mapY; y++)
 	{
@@ -44,6 +45,14 @@ function draw()
 	}
 
 	chars[0].width = chars[0].width;
+
+	if (_cellSize < 8)
+	{
+		console.timeEnd('draw');
+		return;
+	}
+
+	let glyphCount = glyphs.length;
 	for (let y = 0; y < mapY; y++)
 	{
 		for (let x = 0; x < mapX; x++)
@@ -82,12 +91,15 @@ function resize()
 
 function setZoomLevel(newLevel)
 {
+	if (newLevel === _currentZoom)
+	{
+		return;
+	}
+
 	const [cell, pt] = ZOOM_LEVELS[newLevel];
 	_currentZoom = newLevel;
-
 	_cellSize = cell;
-	glyph.size(pt);
-	glyph.cell(_cellSize);
+	glyph.size(pt, cell);
 
 	glyphs = [
 		glyph.get('あ'),
@@ -121,5 +133,23 @@ $(window).on('click', () =>
 	setZoomLevel(_currentZoom);
 });
 
-setZoomLevel(_currentZoom);
+$(window).on('keypress', (evt) =>
+{
+	const code = evt.charCode;
+	switch (code)
+	{
+		case 61: // +
+			setZoomLevel(Math.min(_currentZoom + 1, ZOOM_LEVELS.length - 1));
+			break;
+
+		case 45: // -
+			setZoomLevel(Math.max(_currentZoom - 1, 0));
+			break;
+
+		default:
+			break;
+	}
+});
+
+setZoomLevel(2);
 

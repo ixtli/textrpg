@@ -21,20 +21,11 @@ function invalidateCache()
 	glyphLRUCache = [];
 }
 
-function resizeGlyph(newSize, newCellSize)
+function resize(newSize, newCellSize)
 {
-	// regen height
-	if (newSize)
-	{
-		_size = newSize;
-		_sizeStr = `${_size}pt`;
-	}
-
-	if (newCellSize)
-	{
-		_cellSize = newCellSize;
-	}
-
+	_size = newSize;
+	_sizeStr = `${_size}pt`;
+	_cellSize = newCellSize;
 	regenerateCSSFont();
 	invalidateCache();
 }
@@ -202,6 +193,11 @@ CachedGlyph.prototype.use = (isNew) =>
 module.exports = {
 	get (glyph)
 	{
+		if (_size < 4)
+		{
+			return null;
+		}
+
 		const found = glyphCache[glyph];
 
 		if (found)
@@ -212,24 +208,7 @@ module.exports = {
 
 		return new CachedGlyph(glyph);
 	},
-	size(newSize)
-	{
-		if (!newSize)
-		{
-			return _size;
-		}
-
-		resizeGlyph(newSize);
-	},
-	cell(newSize)
-	{
-		if (!newSize)
-		{
-			return _cellSize;
-		}
-
-		resizeGlyph(0, newSize);
-	}
+	size: resize
 };
 
 
