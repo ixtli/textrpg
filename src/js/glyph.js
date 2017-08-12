@@ -11,14 +11,11 @@ let CSSFont = '';
 
 const DEBUG_DRAW = false;
 
-const glyphCacheSize = 64;
-let glyphLRUCache = [];
 let glyphCache = {};
 
 function invalidateCache()
 {
 	glyphCache = {};
-	glyphLRUCache = [];
 }
 
 function resize(newSize, newCellSize)
@@ -37,10 +34,10 @@ function regenerateCSSFont()
 
 function getBoundingBox(ctx, width, height)
 {
-	let ret = {};
+	const ret = {};
 
 	// Get the pixel data from the canvas
-	let data = ctx.getImageData(0, 0, width, height).data;
+	const data = ctx.getImageData(0, 0, width, height).data;
 	let first = 0;
 	let last = 0;
 	let right = 0;
@@ -161,34 +158,7 @@ function CachedGlyph(glyph)
 
 	this._buffer = canvas;
 	glyphCache[glyph] = this;
-	this.use(true);
 }
-
-CachedGlyph.prototype.use = (isNew) =>
-{
-	if (isNew)
-	{
-		glyphLRUCache.push(this);
-		if (glyphLRUCache.length > glyphCacheSize)
-		{
-			let dropped = glyphLRUCache.pop();
-			delete glyphCache[dropped._glyph];
-		}
-		return;
-	}
-
-	const count = glyphLRUCache.length;
-	for (let i = 0; i < count; i++)
-	{
-		if (glyphLRUCache[i] === this)
-		{
-			glyphLRUCache.splice(i, 1);
-			break;
-		}
-	}
-
-	glyphLRUCache.push(this);
-};
 
 module.exports = {
 	get (glyph)
@@ -202,7 +172,6 @@ module.exports = {
 
 		if (found)
 		{
-			found.use();
 			return found;
 		}
 

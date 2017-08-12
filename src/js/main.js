@@ -15,10 +15,10 @@ const ZOOM_LEVELS = [
 let _currentZoom = -1;
 let _cellSize = 32;
 
-const canvas = $('canvas.gc');
-const chars = $('canvas.cc');
-const ctx = canvas[0].getContext('2d');
-const cc_ctx = chars[0].getContext('2d');
+const canvas = $('canvas.gc')[0];
+const chars = $('canvas.cc')[0];
+const ctx = canvas.getContext('2d');
+const cc_ctx = chars.getContext('2d');
 const colorMap = ['rgb(117, 144, 133)',
 	'rgb(186, 199, 180)', 'rgb(129, 148, 171)'];
 
@@ -44,7 +44,7 @@ function draw()
 		}
 	}
 
-	chars[0].width = chars[0].width;
+	chars.width = chars.width;
 
 	if (_cellSize < 8)
 	{
@@ -71,20 +71,22 @@ function resize()
 
 	windowWidth = $(window).width();
 	windowHeight = $(window).height();
-	mapX = Math.floor(windowWidth / _cellSize);
-	mapY = Math.floor(windowHeight / _cellSize);
+	mapX = Math.ceil(windowWidth / _cellSize);
+	mapY = Math.ceil(windowHeight / _cellSize);
 	fgMap = new Uint32Array(mapX * mapY);
 	bgMap = new Uint32Array(mapX * mapY);
-	canvas[0].width = mapX * _cellSize;
-	canvas[0].height = mapY * _cellSize;
-	chars[0].width = mapX * _cellSize;
-	chars[0].height = mapY * _cellSize;
+	canvas.width = mapX * _cellSize;
+	canvas.height = mapY * _cellSize;
+	chars.width = mapX * _cellSize;
+	chars.height = mapY * _cellSize;
 
 	for (let i = 0; i < mapX * mapY; i++)
 	{
 		fgMap[i] = rand(3);
 		bgMap[i] = rand(3);
 	}
+
+	console.info("New Map: ", mapX, "x", mapY);
 
 	window.requestAnimationFrame(draw);
 }
@@ -151,5 +153,5 @@ $(window).on('keypress', (evt) =>
 	}
 });
 
-setZoomLevel(2);
+setZoomLevel(3);
 
