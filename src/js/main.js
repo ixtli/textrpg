@@ -17,7 +17,7 @@ let _cellSize = 32;
 
 const canvas = $('canvas.gc')[0];
 const chars = $('canvas.cc')[0];
-const ctx = canvas.getContext('2d');
+const ctx = canvas.getContext('2d', {alpha: false});
 const cc_ctx = chars.getContext('2d');
 const colorMap = ['rgb(117, 144, 133)',
 	'rgb(186, 199, 180)', 'rgb(129, 148, 171)'];
