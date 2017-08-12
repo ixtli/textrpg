@@ -3,10 +3,14 @@ global.$ = global.jQuery = require('jquery');
 
 const glyph = require('./glyph.js');
 
-glyph.size(14);
+const ZOOM_LEVELS = [
+	[16, 8],
+	[32, 14],
+	[64, 28]
+];
 
-let cellHeight = 32;
-let cellWidth = 32;
+let _currentZoom = 1;
+let _cellSize = 32;
 
 const canvas = $('canvas.gc');
 const chars = $('canvas.cc');
@@ -23,25 +27,11 @@ function rand(max)
 }
 
 
-let glyphs = [
-	glyph.get('あ'),
-	glyph.get('X'),
-	glyph.get('o'),
-	glyph.get('ॵ'),
-	glyph.get('ਊ'),
-	glyph.get('♞'),
-	glyph.get('g'),
-	glyph.get('j'),
-	glyph.get('᳄'),
-	glyph.get('😬'),
-	glyph.get('ඐ'),
-	glyph.get('ß')
-];
-
-const glyphCount = glyphs.length;
+let glyphs = null;
 
 function draw()
 {
+	glyphCount = glyphs.length;
 	console.time('draw');
 	chars[0].width = chars[0].width;
 	for (let y = 0; y < mapY; y++)
@@ -49,11 +39,11 @@ function draw()
 		for (let x = 0; x < mapX; x++)
 		{
 			ctx.fillStyle = colorMap[bgMap[x + y * mapX]];
-			ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+			ctx.fillRect(x * _cellSize, y * _cellSize, _cellSize, _cellSize);
 			let buffer = glyphs[rand(glyphCount)];
 			cc_ctx.drawImage(buffer._buffer,
-				(x * cellWidth) + buffer._xOffset,
-				(y * cellHeight) + buffer._yOffset);
+				(x * _cellSize) + buffer._xOffset,
+				(y * _cellSize) + buffer._yOffset);
 		}
 	}
 	console.timeEnd('draw');
@@ -64,14 +54,14 @@ function resize()
 
 	windowWidth = $(window).width();
 	windowHeight = $(window).height();
-	mapX = Math.floor(windowWidth / cellWidth);
-	mapY = Math.floor(windowHeight / cellHeight);
+	mapX = Math.floor(windowWidth / _cellSize);
+	mapY = Math.floor(windowHeight / _cellSize);
 	fgMap = new Uint32Array(mapX * mapY);
 	bgMap = new Uint32Array(mapX * mapY);
-	canvas[0].width = mapX * cellWidth;
-	canvas[0].height = mapY * cellHeight;
-	chars[0].width = mapX * cellWidth;
-	chars[0].height = mapY * cellHeight;
+	canvas[0].width = mapX * _cellSize;
+	canvas[0].height = mapY * _cellSize;
+	chars[0].width = mapX * _cellSize;
+	chars[0].height = mapY * _cellSize;
 
 	for (let i = 0; i < mapX * mapY; i++)
 	{
@@ -82,11 +72,47 @@ function resize()
 	window.requestAnimationFrame(draw);
 }
 
+function setZoomLevel(newLevel)
+{
+	const [cell, pt] = ZOOM_LEVELS[newLevel];
+	_currentZoom = newLevel;
+
+	_cellSize = cell;
+	glyph.size(pt);
+	glyph.cell(_cellSize);
+
+	glyphs = [
+		glyph.get('あ'),
+		glyph.get('X'),
+		glyph.get('o'),
+		glyph.get('ॵ'),
+		glyph.get('ਊ'),
+		glyph.get('♞'),
+		glyph.get('g'),
+		glyph.get('j'),
+		glyph.get('᳄'),
+		glyph.get('😬'),
+		glyph.get('ඐ'),
+		glyph.get('ß')
+	];
+	resize();
+}
+
 $(window).on('resize', () =>
 {
 	resize();
 });
 
-resize();
+$(window).on('click', () =>
+{
+	_currentZoom++;
+	if (_currentZoom >= ZOOM_LEVELS.length)
+	{
+		_currentZoom = 0;
+	}
+	setZoomLevel(_currentZoom);
+});
+
+setZoomLevel(_currentZoom);
 
 // $(document).foundation();

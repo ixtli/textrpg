@@ -1,7 +1,6 @@
 let _size = 0;
 let _sizeStr = '';
-let _height = 32;
-let _width = 32;
+let _cellSize = 32;
 
 let style = 'normal';
 let variant = 'normal';
@@ -22,11 +21,19 @@ function invalidateCache()
 	glyphLRUCache = [];
 }
 
-function resizeGlyph(newSize)
+function resizeGlyph(newSize, newCellSize)
 {
 	// regen height
-	_size = newSize;
-	_sizeStr = `${_size}pt`;
+	if (newSize)
+	{
+		_size = newSize;
+		_sizeStr = `${_size}pt`;
+	}
+
+	if (newCellSize)
+	{
+		_cellSize = newCellSize;
+	}
 
 	regenerateCSSFont();
 	invalidateCache();
@@ -131,12 +138,11 @@ function CachedGlyph(glyph)
 
 	// Clear canvas
 	const tc = document.createElement('canvas');
-	tc.width = _width;
-	tc.height = _height;
+	tc.width = tc.height = _cellSize;
 	const tcx = tc.getContext('2d');
 	tcx.font = CSSFont;
-	tcx.fillText(glyph, 5, _height - (_height / 8));
-	const bb = getBoundingBox(tcx, _width, _height);
+	tcx.fillText(glyph, 5, _cellSize - (_cellSize / 8));
+	const bb = getBoundingBox(tcx, _cellSize, _cellSize);
 
 	if (!bb)
 	{
@@ -151,8 +157,8 @@ function CachedGlyph(glyph)
 	canvas.height = h;
 	const ctx = canvas.getContext('2d');
 
-	this._xOffset = (_width / 2) - Math.ceil(w / 2);
-	this._yOffset = (_height / 2) - Math.ceil(h / 2);
+	this._xOffset = (_cellSize / 2) - Math.ceil(w / 2);
+	this._yOffset = (_cellSize / 2) - Math.ceil(h / 2);
 
 	if (DEBUG_DRAW)
 	{
@@ -214,6 +220,15 @@ module.exports = {
 		}
 
 		resizeGlyph(newSize);
+	},
+	cell(newSize)
+	{
+		if (!newSize)
+		{
+			return _cellSize;
+		}
+
+		resizeGlyph(0, newSize);
 	}
 };
 
