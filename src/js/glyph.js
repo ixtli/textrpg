@@ -141,7 +141,7 @@ function CachedGlyph(glyph)
 	tc.width = tc.height = _cellSize;
 	const tcx = tc.getContext('2d');
 	tcx.font = CSSFont;
-	tcx.fillText(glyph, 5, _cellSize - (_cellSize / 8));
+	tcx.fillText(glyph, 5, _cellSize - (_cellSize / 4));
 	const bb = getBoundingBox(tcx, _cellSize, _cellSize);
 
 	if (!bb)
@@ -149,8 +149,8 @@ function CachedGlyph(glyph)
 		throw new Error("Failed to get bounding box!");
 	}
 
-	const w = bb.width;
-	const h = bb.height;
+	const w = Math.min(bb.width, _cellSize);
+	const h = Math.min(bb.height, _cellSize);
 
 	const canvas = document.createElement('canvas');
 	canvas.width = w;
