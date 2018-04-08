@@ -94,6 +94,8 @@ function resize()
 	window.requestAnimationFrame(draw);
 }
 
+const gs = `あXoॵਊ♞g᳄ඐœ∑´†¥¨ˆπåß∂ƒ©˙∆˚¬}{/432=集まるkjxd`;
+
 function setZoomLevel(newLevel)
 {
 	if (newLevel === _currentZoom)
@@ -106,20 +108,16 @@ function setZoomLevel(newLevel)
 	_cellSize = cell;
 	glyph.size(pt, cell);
 
-	glyphs = [
-		glyph.get('あ'),
-		glyph.get('X'),
-		glyph.get('o'),
-		glyph.get('ॵ'),
-		glyph.get('ਊ'),
-		glyph.get('♞'),
-		glyph.get('g'),
-		glyph.get('j'),
-		glyph.get('᳄'),
-		glyph.get('😬'),
-		glyph.get('ඐ'),
-		glyph.get('ß')
-	];
+	glyphs = [];
+
+	const len = gs.length;
+	for (let i = 0; i < len; i++)
+	{
+		glyphs.push(glyph.get(gs[i]));
+	}
+
+	glyphs.push(glyph.get("😬"));
+
 	resize();
 }
 
